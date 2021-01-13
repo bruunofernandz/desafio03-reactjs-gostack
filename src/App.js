@@ -1,29 +1,61 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import api from './services/api';
 
 import "./styles.css";
 
 function App() {
+  const [ repositores, setRepositories ] = useState([]);
+  const [inputValue, setInputValue] = useState({});
+  let text = "";
+
+  useEffect(() => {
+    api.get('/repositories').then(res => {
+      setRepositories(res.data);
+    })
+  }, []);
+
+  function handleInputChange(e) {
+    setInputValue({
+      title: e.target.value,
+    });
+  }
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('/repositories', inputValue)
+      .then(res => {
+        setRepositories([...repositores, res.data]);
+      });
+
+      console.log(inputValue);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    const response = await api.delete(`/repositories/${id}`).then(res => {
+      setRepositories(repositores.filter(repo => repo.id !== id));
+    });
   }
 
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+        {repositores.map((repo) => (
+          <li key={repo.id}>
+            {repo.title}
+            <button onClick={() => handleRemoveRepository(repo.id)}>
+              Remover
+            </button>
+          </li>
+        ))}
       </ul>
 
-      <button onClick={handleAddRepository}>Adicionar</button>
+      <div>
+        <input
+         type="text"
+         placeholder="Digite um título"
+         onChange={handleInputChange}
+        />
+        <button onClick={handleAddRepository}>Adicionar</button>
+      </div>
     </div>
   );
 }
